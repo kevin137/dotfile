@@ -6,7 +6,7 @@ alias h='history'
 alias hm='history -s \#\# history_marker hostname `date --rfc-3339=seconds`'
 alias hgrep='history | grep $@'
 
-alias now="LC_ALL=C date '+W%V %A, %Y-%m-%d %H:%M:%S'"
+alias now="LC_ALL=C date '+[%V] %A, %Y-%m-%d %H:%M:%S'"
 alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
 alias t='gnome-terminal'
 alias op='xdg-open'
