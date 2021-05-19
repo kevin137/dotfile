@@ -1,3 +1,6 @@
+# get latest version of this alias file
+alias get_latest_alias='  wget --output-document=/tmp/latest_bash_aliases https://raw.githubusercontent.com/kevin137/dotfile/master/.bash_aliases && mv $HOME/.bash_aliases /tmp/bash_aliases.$( date +%Y-%m-%d-%H-%M-%S ) && mv /tmp/latest_bash_aliases $HOME/.bash_aliases '
+
 # quick history, history_marker with hostname, date, and time, to history
 alias h='history'
 alias hm='history -s \#\# history_marker hostname `date --rfc-3339=seconds`'
