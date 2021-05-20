@@ -1,33 +1,55 @@
-# get latest version of this alias file
-alias get_latest_alias='  wget --output-document=/tmp/latest_bash_aliases https://raw.githubusercontent.com/kevin137/dotfile/master/.bash_aliases && mv $HOME/.bash_aliases /tmp/bash_aliases.$( date +%Y-%m-%d-%H-%M-%S ) && mv /tmp/latest_bash_aliases $HOME/.bash_aliases '
+# custom aliases file
 
-# quick history, history_marker with hostname, date, and time, to history
-alias h='history'
-alias hm='history -s \#\# history_marker hostname `date --rfc-3339=seconds`'
-alias hgrep='history | grep $@'
+function standard_aliases {
 
-alias now="date '+[%V] %A, %Y-%m-%d %H:%M:%S'"
-alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
-alias t='gnome-terminal'
-alias op='xdg-open'
-alias ol='cat $HOME/.bash_aliases $HOME/.bash_company | grep -i -A1 $@ '
+  # get latest version of this alias file
+  alias get_latest_alias='  wget --output-document=/tmp/latest_bash_aliases https://raw.githubusercontent.com/kevin137/dotfile/master/.bash_aliases && mv $HOME/.bash_aliases /tmp/bash_aliases.$( date +%Y-%m-%d-%H-%M-%S ) && mv /tmp/latest_bash_aliases $HOME/.bash_aliases '
 
-# Notepad++ (wine)
-alias npp='echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found '
-# LTspice (wine)
-alias lts='echo; [ -f $HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe ] && pushd $HOME/share && ( wine "$HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe" & ) && popd && echo LTspice started || echo LTspice not found '
+  # quick history, history_marker with hostname, date, and time, to history
+  alias h='history'
+  alias hm='history -s \#\# history_marker hostname `date --rfc-3339=seconds`'
+  alias hgrep='history | grep $@'
 
-# Telegram web
-alias ptg='firefox --private-window https://web.telegram.org/#/login 2> /dev/null &'
+  alias now="date '+[%V] %A, %Y-%m-%d %H:%M:%S'"
+  alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
+  alias t='gnome-terminal'
+  alias op='xdg-open'
+  alias ol='cat $HOME/.bash_aliases $HOME/.bash_company | grep -i -A1 $@ '
 
-# WhatsApp web
-alias pwa='firefox --private-window https://web.whatsapp.com/ 2> /dev/null &' 
+  # Notepad++ (wine)
+  alias npp='echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found '
+  # LTspice (wine)
+  alias lts='echo; [ -f $HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe ] && pushd $HOME/share && ( wine "$HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe" & ) && popd && echo LTspice started || echo LTspice not found '
 
-# YouTube web
-alias pyt='firefox --private-window https://www.youtube.com/ 2> /dev/null &' 
+  # Telegram web
+  alias ptg='firefox --private-window https://web.telegram.org/#/login 2> /dev/null &'
 
-if [ -f ~/.bash_company ]; then
+  # WhatsApp web
+  alias pwa='firefox --private-window https://web.whatsapp.com/ 2> /dev/null &' 
+
+  # YouTube web
+  alias pyt='firefox --private-window https://www.youtube.com/ 2> /dev/null &' 
+
+  if [ -f ~/.bash_company ]; then
     . ~/.bash_company
+  fi
+}
+
+if [ $# -eq 0 ]; then
+  standard_aliases
+else
+  case $1 in
+    worldtime)
+      echo -n 🌐; for tz in America/Los_Angeles America/Chicago Europe/Madrid Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
+      ;;
+    ipv4)
+      for ip in $( ip -4 addr | grep -v 127.0.0.1 | grep inet | tr -s ' ' '@' | cut -d@ -f3 ); do echo -n $ip \ \|\  ; done; echo -n \  ; hostname
+      ;;
+    *)
+      echo $@ 
+      ;;
+    esac 
+  exit
 fi
 
 return
