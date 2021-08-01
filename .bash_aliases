@@ -41,27 +41,36 @@ function standard_aliases {
   fi
 }
 
+function worldtime {
+  echo -n 🌐; for tz in America/Los_Angeles America/Chicago Europe/Madrid Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
+}
+
+function ipv4 {
+  for ip in $( ip -4 addr | grep -v 127.0.0.1 | grep inet | tr -s ' ' '@' | cut -d@ -f3 ); do echo -n $ip \ \|\  ; done; echo -n \  ; hostname
+}
+
+function install_npp {
+# Download and install Notepad++
+variant=portable.x64.7z && install=$HOME/.wine/drive_c/Local/Npp && site=https://github.com && latest=$site/notepad-plus-plus/notepad-plus-plus/releases/latest && portable=$site$( wget -q -O - $latest | grep href=.*$variant\" | tr \  \\n | grep href | cut -d= -f2 | tr -d \" ) && echo PORTABLE $portable && downloaded=$( wget $portable 2>&1 | grep saved | strings | grep $variant ) && echo DOWNLOADED $downloaded && checksum=$( wget -q -O - $latest | grep $variant | grep -E '^[0-9a-f]+ +.*'$variant | cut -d\  -f1 ) && echo -e CHECKSUM\\n$checksum && sha256sum $downloaded | grep $checksum && 7z -o$install x $downloaded && rm $downloaded && wine $install/notepad++.exe $install/change.log && sed -i '/Default Style/ s/Courier New/Noto Mono/' $install/stylers.xml && grep Default\ Style $install/stylers.xml && echo Notepad++ installed, type npp to run
+}
+
+function install_ltspice {
+# Download and install LTspice
+variant=LTspiceXVII.exe && install=$HOME/.wine/drive_c/Local/LTspice && site=https://ltspice.analog.com && latest=$site/software/$variant && downloaded=$( wget $latest 2>&1 | grep saved | strings | grep $variant ) && echo DOWNLOADED $downloaded && echo install in $install && wine $downloaded && LTspice installed, type lts to run
+}
+
 if [ $# -eq 0 ]; then
   standard_aliases
 else
   case $1 in
     worldtime)
-      echo -n 🌐; for tz in America/Los_Angeles America/Chicago Europe/Madrid Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
+      worldtime
       ;;
     ipv4)
-      for ip in $( ip -4 addr | grep -v 127.0.0.1 | grep inet | tr -s ' ' '@' | cut -d@ -f3 ); do echo -n $ip \ \|\  ; done; echo -n \  ; hostname
+      ipv4
       ;;
     *)
       echo $@ 
       ;;
     esac 
-  exit
 fi
-
-return
-
-# Download and install Notepad++
-variant=portable.x64.7z && install=$HOME/.wine/drive_c/Local/Npp && site=https://github.com && latest=$site/notepad-plus-plus/notepad-plus-plus/releases/latest && portable=$site$( wget -q -O - $latest | grep href=.*$variant\" | tr \  \\n | grep href | cut -d= -f2 | tr -d \" ) && echo PORTABLE $portable && downloaded=$( wget $portable 2>&1 | grep saved | strings | grep $variant ) && echo DOWNLOADED $downloaded && checksum=$( wget -q -O - $latest | grep $variant | grep -E '^[0-9a-f]+ +.*'$variant | cut -d\  -f1 ) && echo -e CHECKSUM\\n$checksum && sha256sum $downloaded | grep $checksum && 7z -o$install x $downloaded && rm $downloaded && wine $install/notepad++.exe $install/change.log && sed -i '/Default Style/ s/Courier New/Noto Mono/' $install/stylers.xml && grep Default\ Style $install/stylers.xml && echo Notepad++ installed, type npp to run
-
-# Download and install LTspice
-variant=LTspiceXVII.exe && install=$HOME/.wine/drive_c/Local/LTspice && site=https://ltspice.analog.com && latest=$site/software/$variant && downloaded=$( wget $latest 2>&1 | grep saved | strings | grep $variant ) && echo DOWNLOADED $downloaded && echo install in $install && wine $downloaded && LTspice installed, type lts to run
