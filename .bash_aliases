@@ -21,7 +21,7 @@ function standard_aliases {
   # LTspice (wine)
   alias lts='echo; [ -f $HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe ] && pushd $HOME/share && ( wine "$HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe" & ) && popd && echo LTspice started || echo LTspice not found '
 
-  # Telegram web
+  # Telegram desktop
   alias tg='telegram-desktop 2> /dev/null &'
 
   # Telegram web
