@@ -1,4 +1,4 @@
-# custom aliases file
+# custom aliases/functions/one-liners file
 
 function standard_aliases {
 
@@ -22,12 +22,18 @@ function standard_aliases {
   alias lts='echo; [ -f $HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe ] && pushd $HOME/share && ( wine "$HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe" & ) && popd && echo LTspice started || echo LTspice not found '
 
   # Telegram web
+  alias tg='telegram-desktop 2> /dev/null &'
+
+  # Telegram web
   alias ptg='firefox --private-window https://web.telegram.org/#/login 2> /dev/null &'
 
   # WhatsApp web
   alias pwa='firefox --private-window https://web.whatsapp.com/ 2> /dev/null &' 
 
-  # YouTube web
+  # Gmail
+  alias pgm='firefox --private-window https://www.gmail.com/ 2> /dev/null &' 
+
+  # YouTube
   alias pyt='firefox --private-window https://www.youtube.com/ 2> /dev/null &' 
 
   if [ -f ~/.bash_company ]; then
