@@ -1,16 +1,16 @@
-# custom aliases/functions/one-liners file
+# custom aliases/functions/one-liners/notes file
 
 function standard_aliases {
 
-  # get latest version of this alias file
-  alias get_latest_alias='  wget --output-document=/tmp/latest_bash_aliases https://raw.githubusercontent.com/kevin137/dotfile/master/.bash_aliases && mv $HOME/.bash_aliases /tmp/bash_aliases.$( date +%Y-%m-%d-%H-%M-%S ) && mv /tmp/latest_bash_aliases $HOME/.bash_aliases '
+  history_dir=$HOME/Documents/History
 
-  # quick history, history_marker with hostname, date, and time, to history
+  # bash history management
   alias h='history'
-  alias hm='history -s \#\# history_marker hostname `date --rfc-3339=seconds`'
-  alias hgrep='history | grep $@'
+  alias hm='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds )'
+  alias hgrep='history | cat $history_dir/bash_history_*.txt - | grep $@'
+  alias hbackup='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds ) history_backup && history -w && cp $HOME/.bash_history $history_dir/$(date +bash_history_%Y-%m-%dT%H-%M-%S.txt)'
 
-  alias now="date '+[%V] %A, %Y-%m-%d %H:%M:%S'"
+  alias now='date +[%V]\ %A\,\ %Y-%m-%d\ %H:%M:%S'
   alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
   alias t='gnome-terminal'
   alias op='xdg-open'
@@ -36,6 +36,12 @@ function standard_aliases {
   # YouTube
   alias pyt='firefox --private-window https://www.youtube.com/ 2> /dev/null &' 
 
+  # GitHub
+  alias pgh='firefox --private-window https://github.com/login 2> /dev/null &' 
+
+  # get latest version of this aliases file
+  alias get_latest_aliases='  wget --output-document=/tmp/latest_bash_aliases https://raw.githubusercontent.com/kevin137/dotfile/master/.bash_aliases && mv $HOME/.bash_aliases /tmp/bash_aliases.$( date +%Y-%m-%d-%H-%M-%S ) && mv /tmp/latest_bash_aliases $HOME/.bash_aliases '
+
   if [ -f ~/.bash_company ]; then
     . ~/.bash_company
   fi
@@ -50,13 +56,13 @@ function ipv4 {
 }
 
 function install_npp {
-# Download and install Notepad++
-variant=portable.x64.7z && install=$HOME/.wine/drive_c/Local/Npp && site=https://github.com && latest=$site/notepad-plus-plus/notepad-plus-plus/releases/latest && portable=$site$( wget -q -O - $latest | grep href=.*$variant\" | tr \  \\n | grep href | cut -d= -f2 | tr -d \" ) && echo PORTABLE $portable && downloaded=$( wget $portable 2>&1 | grep saved | strings | grep $variant ) && echo DOWNLOADED $downloaded && checksum=$( wget -q -O - $latest | grep $variant | grep -E '^[0-9a-f]+ +.*'$variant | cut -d\  -f1 ) && echo -e CHECKSUM\\n$checksum && sha256sum $downloaded | grep $checksum && 7z -o$install x $downloaded && rm $downloaded && wine $install/notepad++.exe $install/change.log && sed -i '/Default Style/ s/Courier New/Noto Mono/' $install/stylers.xml && grep Default\ Style $install/stylers.xml && echo Notepad++ installed, type npp to run
+  # Download and install Notepad++
+  variant=portable.x64.7z && install=$HOME/.wine/drive_c/Local/Npp && site=https://github.com && latest=$site/notepad-plus-plus/notepad-plus-plus/releases/latest && portable=$site$( wget -q -O - $latest | grep href=.*$variant\" | tr \  \\n | grep href | cut -d= -f2 | tr -d \" ) && echo PORTABLE $portable && downloaded=$( wget $portable 2>&1 | grep saved | strings | grep $variant ) && echo DOWNLOADED $downloaded && checksum=$( wget -q -O - $latest | grep $variant | grep -E '^[0-9a-f]+ +.*'$variant | cut -d\  -f1 ) && echo -e CHECKSUM\\n$checksum && sha256sum $downloaded | grep $checksum && 7z -o$install x $downloaded && rm $downloaded && wine $install/notepad++.exe $install/change.log && sed -i '/Default Style/ s/Courier New/Noto Mono/' $install/stylers.xml && grep Default\ Style $install/stylers.xml && echo Notepad++ installed, type npp to run
 }
 
 function install_ltspice {
-# Download and install LTspice
-variant=LTspiceXVII.exe && install=$HOME/.wine/drive_c/Local/LTspice && site=https://ltspice.analog.com && latest=$site/software/$variant && downloaded=$( wget $latest 2>&1 | grep saved | strings | grep $variant ) && echo DOWNLOADED $downloaded && echo install in $install && wine $downloaded && LTspice installed, type lts to run
+  # Download and install LTspice
+  variant=LTspiceXVII.exe && install=$HOME/.wine/drive_c/Local/LTspice && site=https://ltspice.analog.com && latest=$site/software/$variant && downloaded=$( wget $latest 2>&1 | grep saved | strings | grep $variant ) && echo DOWNLOADED $downloaded && echo install in $install && wine $downloaded && LTspice installed, type lts to run
 }
 
 if [ $# -eq 0 ]; then
@@ -74,3 +80,7 @@ else
       ;;
     esac 
 fi
+
+# Notes:
+#   Ubuntu hotkeys:
+#     Move windows between displays : Super+Shift+Arrow 
