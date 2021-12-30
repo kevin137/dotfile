@@ -33,6 +33,9 @@ function standard_aliases {
   # Gmail
   alias pgm='firefox --private-window https://www.gmail.com/ 2> /dev/null &' 
 
+  # Telegram, WhatsApp, Gmail, and Alpha in one command, for use first thing in the morning
+  alias ppp='( firefox --private-window https://web.telegram.org/#/login 2> /dev/null & ) & ( sleep 7 && firefox --private-window https://web.whatsapp.com/ 2> /dev/null & ) & ( sleep 14 && firefox --private-window https://www.gmail.com/ 2> /dev/null & ) & ( sleep 21 && firefox --private-window https://www.wolframalpha.com/ 2> /dev/null & ) &' 
+
   # YouTube
   alias pyt='firefox --private-window https://www.youtube.com/ 2> /dev/null &' 
 
@@ -42,8 +45,8 @@ function standard_aliases {
   # get latest version of this aliases file
   alias get_latest_aliases='  wget --output-document=/tmp/latest_bash_aliases https://raw.githubusercontent.com/kevin137/dotfile/master/.bash_aliases && mv $HOME/.bash_aliases /tmp/bash_aliases.$( date +%Y-%m-%d-%H-%M-%S ) && mv /tmp/latest_bash_aliases $HOME/.bash_aliases '
 
-  if [ -f ~/.bash_company ]; then
-    . ~/.bash_company
+  if [ -f ~/.bash_work ]; then
+    . ~/.bash_work
   fi
 }
 
