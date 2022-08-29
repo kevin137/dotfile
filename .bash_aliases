@@ -1,6 +1,7 @@
+#!/bin/bash
 # custom aliases/functions/one-liners/notes file
 
-function standard_aliases {
+function standard_generic_aliases {
 
   history_dir=$HOME/Documents/History
 
@@ -14,7 +15,7 @@ function standard_aliases {
   alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
   alias t='gnome-terminal'
   alias op='xdg-open'
-  alias ol='cat $HOME/.bash_aliases $HOME/.bash_company | grep -i -A1 $@ '
+  alias ol='cat $HOME/.bash_aliases $HOME/.bash_work | grep -i -A1 $@ '
 
   # Notepad++ (wine)
   alias npp='echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found '
@@ -34,7 +35,7 @@ function standard_aliases {
   alias pgm='firefox --private-window https://www.gmail.com/ 2> /dev/null &' 
 
   # Telegram, WhatsApp, Gmail, and Alpha in one command, for use first thing in the morning
-  alias ppp='( firefox --private-window https://web.telegram.org/#/login 2> /dev/null & ) & ( sleep 7 && firefox --private-window https://web.whatsapp.com/ 2> /dev/null & ) & ( sleep 14 && firefox --private-window https://www.gmail.com/ 2> /dev/null & ) & ( sleep 21 && firefox --private-window https://www.wolframalpha.com/ 2> /dev/null & ) &' 
+  #alias ppp='( ( telegram-desktop 2> /dev/null & ) & google-chrome --incognito https://web.telegram.org/#/login 2> /dev/null & ) & ( sleep 7 && google-chrome --incognito https://web.whatsapp.com/ 2> /dev/null & ) & ( sleep 14 && google-chrome --incognito https://www.gmail.com/ 2> /dev/null & ) & ( sleep 21 && google-chrome --incognito https://www.wolframalpha.com/ 2> /dev/null & ) &' 
 
   # YouTube
   alias pyt='firefox --private-window https://www.youtube.com/ 2> /dev/null &' 
@@ -54,8 +55,17 @@ function worldtime {
   echo -n 🌐; for tz in America/Los_Angeles America/Chicago Europe/Madrid Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
 }
 
+function titlebar_now {
+  date '+[%V] %A'
+}
+
 function ipv4 {
   for ip in $( ip -4 addr | grep -v 127.0.0.1 | grep inet | tr -s ' ' '@' | cut -d@ -f3 ); do echo -n $ip \ \|\  ; done; echo -n \  ; hostname
+}
+
+function ppp {
+  # Telegram, WhatsApp, Gmail, and Alpha in one command, for use first thing in the morning
+  ( ( telegram-desktop 2> /dev/null & ) & google-chrome --incognito 'https://web.telegram.org/#/login' 2> /dev/null & ) & ( sleep 7 && google-chrome --incognito 'https://web.whatsapp.com/' 2> /dev/null & ) & ( sleep 14 && google-chrome --incognito 'https://www.gmail.com/' 2> /dev/null & ) & ( sleep 21 && google-chrome --incognito 'https://www.wolframalpha.com/' 2> /dev/null & ) & 
 }
 
 function install_npp {
@@ -69,14 +79,20 @@ function install_ltspice {
 }
 
 if [ $# -eq 0 ]; then
-  standard_aliases
+  standard_generic_aliases
 else
   case $1 in
     worldtime)
       worldtime
       ;;
+    titlebar_now)
+      titlebar_now
+      ;;
     ipv4)
       ipv4
+      ;;
+    ppp)
+      ppp
       ;;
     *)
       echo $@ 
