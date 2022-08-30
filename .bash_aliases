@@ -83,16 +83,20 @@ if [ $# -eq 0 ]; then
 else
   case $1 in
     worldtime)
-      worldtime
+      shift 
+      worldtime $@
       ;;
     titlebar_now)
-      titlebar_now
+      shift
+      titlebar_now $@
       ;;
     ipv4)
-      ipv4
+      shift
+      ipv4 $@
       ;;
     ppp)
-      ppp
+      shift
+      ppp $@
       ;;
     *)
       echo $@ 
