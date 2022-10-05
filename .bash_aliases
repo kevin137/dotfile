@@ -9,11 +9,12 @@ function standard_generic_aliases {
   alias h='history'
   alias hm='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds )'
   alias hgrep='history | cat $history_dir/bash_history_*.txt - | grep $@'
+  alias hcheck='history | head -n1; history | grep "$( cat $history_dir/$( ls -1rt $history_dir | tail -n1 ) | grep \#\#\ history_marker | tail -n1 )"; history | tail -n1'
   alias hbackup='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds ) history_backup && history -w && cp $HOME/.bash_history $history_dir/$(date +bash_history_%Y-%m-%dT%H-%M-%S.txt)'
 
   alias now='date +[%V]\ %A\,\ %Y-%m-%d\ %H:%M:%S'
   alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
-  alias t='gnome-terminal'
+  alias t='gnome-terminal --window'
   alias op='xdg-open'
   alias ol='cat $HOME/.bash_aliases $HOME/.bash_work | grep -i -A1 $@ '
 
@@ -63,6 +64,18 @@ function ipv4 {
   for ip in $( ip -4 addr | grep -v 127.0.0.1 | grep inet | tr -s ' ' '@' | cut -d@ -f3 ); do echo -n $ip \ \|\  ; done; echo -n \  ; hostname
 }
 
+function llssh {
+  # this is a nice idea, but it is not working for now
+  sshuser=$1; shift
+  [[ ! -z "$sshuser" ]] && sshuser="-l $sshuser" 
+  dev=$( nmcli con show --active | grep ethernet | cut -d\  -f7 | tail -n1 ); 
+  echo -n $dev \ \ 
+  mac=$( ip neighbor show | grep $dev | cut -d\  -f5 ); 
+  echo mac $mac
+  ipv6ll=$( echo fe80::$( echo $mac | cut -c1 )$( echo $mac | cut -c2 | tr "0123456789abcdef" "23016745ab89efcd" )$( echo $mac | cut -c4,5,6,7,8 )ff:fe$( echo $mac | cut -c10,11,12,13,14,16,17 )%$dev ); 
+  ping -c2 $ipv6ll && echo ssh $sshuser $ipv6ll $@
+}
+
 function ppp {
   # Telegram, WhatsApp, Gmail, and Alpha in one command, for use first thing in the morning
   ( ( telegram-desktop 2> /dev/null & ) & google-chrome --incognito 'https://web.telegram.org/#/login' 2> /dev/null & ) & ( sleep 7 && google-chrome --incognito 'https://web.whatsapp.com/' 2> /dev/null & ) & ( sleep 14 && google-chrome --incognito 'https://www.gmail.com/' 2> /dev/null & ) & ( sleep 21 && google-chrome --incognito 'https://www.wolframalpha.com/' 2> /dev/null & ) & 
@@ -107,3 +120,6 @@ fi
 # Notes:
 #   Ubuntu hotkeys:
 #     Move windows between displays : Super+Shift+Arrow 
+#   Special terminal sequences:
+#     Breaking out of stuck ssh session : <Enter><Enter>~.
+#     Breaking out of stuck ssh session : <Enter><Enter><AltGr+'4'>.
