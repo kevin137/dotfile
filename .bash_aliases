@@ -6,11 +6,11 @@ function standard_generic_aliases {
   history_dir=$HOME/Documents/History
 
   # bash history management
-  alias h='history'
+  alias h='history; echo ----------; history | head -n1; history | grep "$( cat $history_dir/$( ls -1rt $history_dir | tail -n1 ) | grep \#\#\ history_marker | tail -n1 )"; history | tail -n1'
   alias hm='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds )'
   alias hgrep='history | cat $history_dir/bash_history_*.txt - | grep $@'
-  alias hcheck='history | head -n1; history | grep "$( cat $history_dir/$( ls -1rt $history_dir | tail -n1 ) | grep \#\#\ history_marker | tail -n1 )"; history | tail -n1'
   alias hbackup='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds ) history_backup && history -w && cp $HOME/.bash_history $history_dir/$(date +bash_history_%Y-%m-%dT%H-%M-%S.txt)'
+  alias away='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds ) stepped_away && xdg-screensaver lock'
 
   alias now='date +[%V]\ %A\,\ %Y-%m-%d\ %H:%M:%S'
   alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
