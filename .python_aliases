@@ -1,0 +1,25 @@
+import argparse, os, pathlib, subprocess
+from time import strftime, gmtime
+parser = argparse.ArgumentParser()
+parser.add_argument('cmdline_args', nargs='*', help='arguments to pass')
+args = parser.parse_args()
+
+def dump_file_table(args):
+    rootpath = args[0] if args else '.'
+    for root, dirs, files in os.walk(rootpath):
+        for name in files:
+            fullpath = str(pathlib.Path(os.path.join(root, name)).resolve())
+            stat = os.stat(fullpath)
+            timestamp = strftime("%Y-%m-%dT%H:%M:%S", gmtime(stat.st_mtime))
+            epoch, size = int(stat.st_mtime), int(stat.st_size)
+            md5 = subprocess.run(['md5sum', fullpath], 
+                    capture_output=True).stdout.split()[0].decode('utf-8')
+            print('{}\t{:>10}\t{:>10}\t{}\t{}'.format(
+                    timestamp, epoch, size, md5, fullpath))
+
+try:
+    func_name = str((args.cmdline_args)[0])
+    func_args = (args.cmdline_args)[1:]
+    r = globals()[func_name](args=func_args)
+except:
+    print('python alias ' + ' '.join(args.cmdline_args) + ' failed')
