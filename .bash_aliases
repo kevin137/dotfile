@@ -16,7 +16,9 @@ function standard_generic_aliases {
   alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
   alias t='gnome-terminal --window'
   alias op='xdg-open'
-  alias ol='cat $HOME/.bash_aliases $HOME/.bash_work | grep -i -A1 $@ '
+  alias ol='cat $HOME/.bash_aliases $HOME/.bash_work $HOME/.python_aliases| grep -i -A1 $@ '
+
+  alias ft='python3 $HOME/.python_aliases dump_file_table $@'
 
   # Notepad++ (wine)
   alias npp='echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found '
