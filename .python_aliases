@@ -3,11 +3,14 @@ from time import strftime, gmtime
 parser = argparse.ArgumentParser()
 parser.add_argument('cmdline_args', nargs='*', help='arguments to pass')
 args = parser.parse_args()
+debug = ''
 
 def dump_file_table(args):
     rootpath = args[0] if args else '.'
     for root, dirs, files in os.walk(rootpath):
         for name in files:
+            if not pathlib.Path(os.path.join(root, name)).is_file():
+                continue
             fullpath = str(pathlib.Path(os.path.join(root, name)).resolve())
             stat = os.stat(fullpath)
             timestamp = strftime("%Y-%m-%dT%H:%M:%S", gmtime(stat.st_mtime))
