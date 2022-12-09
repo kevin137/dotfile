@@ -1,0 +1,27 @@
+a=$HOME/.alias
+if [ -f $a ]; then
+    # if a unified aliases file exists, look for the BASH_ALIASES block,
+    #   extract it, save it in a tempfile, load the aliases inside
+    tmp=$(mktemp);
+    tail --lines=+$(($(grep -n BEGIN_BASH_ALIAS $a|cut -d: -f1)+1)) $a\
+        | head --lines=-$(($(wc -l $a|cut -d\  -f1)-\
+            $(grep -n END_BASH_ALIAS $a|cut -d: -f1 )+1))\
+        | cut -c5- >$tmp
+    source $tmp;
+    #rm $tmp
+    # now look for the GNOME_SHELL functions block,
+    #   extract it, save it $HOME.local/bin, load the aliases inside
+    #   we do this so that functions can be called from GNOME and bash 
+    gsf=$HOME/.local/bin/gnome_shell_f;
+    tail --lines=+$(($(grep -n BEGIN_GNOME_SHELL_F $a|cut -d: -f1)+1)) $a\
+        | head --lines=-$(($(wc -l $a|cut -d\  -f1)-\
+            $(grep -n END_GNOME_SHELL_F $a|cut -d: -f1 )+1))\
+        | cut -c5- >$gsf
+    touch $gsf --reference $a
+    chmod u+x $gsf
+    source $gsf
+fi
+
+if [ -f $HOME/.bash_work ]; then
+    source ~/.bash_work
+fi
