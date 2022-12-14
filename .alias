@@ -16,13 +16,25 @@ def dump_file_table(args):
             stat = os.stat(fullpath)
             timestamp = strftime("%Y-%m-%dT%H:%M:%S", gmtime(stat.st_mtime))
             epoch, size = int(stat.st_mtime), int(stat.st_size)
-            md5 = subprocess.run(['md5sum', fullpath], 
-                    capture_output=True).stdout.split()[0].decode('utf-8')
-            type = subprocess.run(['file', '-b', '-i', fullpath], 
-                    capture_output=True).stdout.split()[0].decode('utf-8')
+            md5 = compute_md5(fullpath)
+            type = determine_type(fullpath)
             print('{:<19}\t{:>10}\t{:>10}\t{:<32}\t{:<25}\t{}'.format(
                     timestamp, epoch, size, md5, type, fullpath))
 
+def compute_md5(file):
+    md5 = subprocess.run(['md5sum', file],                          # Linux
+            capture_output=True).stdout.split()[0].decode('utf-8')  # Linux 
+    #md5 = subprocess.check_output(['md5', '-q', file])              # Darwin
+    #        .rstrip().decode('utf-8')                               # Darwin
+    return md5
+
+def determine_type(file):
+    type = subprocess.run(['file', '-b', '-i', file],               # Linux
+            capture_output=True).stdout.split()[0].decode('utf-8')  # Darwin
+    #type = subprocess.check_output(['file', '-b', '-i', file])      # Darwin
+    #        .rstrip().split()                                       # Darwin
+    return type
+ 
 try:
     func_name = str((args.cmdline_args)[0])
     func_args = (args.cmdline_args)[1:]
@@ -41,16 +53,17 @@ def bash_alias():
     alias hm='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds )'
     alias hgrep='history | cat $history_dir/bash_history_*.txt - | grep $@'
     alias hbackup='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds ) history_backup && history -w && cp $HOME/.bash_history $history_dir/$(date +bash_history_%Y-%m-%dT%H-%M-%S.txt)'
-    #alias away='history -s \#\# history_marker $HOSTNAME $( date --rfc-3339=seconds ) stepped_away && xdg-screensaver lock'
 
+    # basic convenience functions
     alias now='date +[%V]\ %A\,\ %Y-%m-%d\ %H:%M:%S'
     alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
     alias t='gnome-terminal --window'
-    alias op='xdg-open'
-    alias ol='cat $HOME/.alias $HOME/.bash_work $HOME/.gnome_shell_f | grep -i -A1 $@ '
+    #alias op='xdg-open $@'  # this is less useful now, all platforms have "open"
+    alias ol='cat $HOME/.alias $HOME/.bash_work $HOME/.local/bin/gnome_shell_f | grep -i -A1 $@ '
 
-    alias ctab="column --table --separator $'\t' --output-separator $'\t'"
+    # creating file tables, filtering, pretty-printing
     alias ft='python3 $HOME/.alias dump_file_table $@'
+    alias ctab="column --table --separator $'\t' --output-separator $'\t'"
     alias exdot=' grep -Fv -e /snap/ -e /.git/ -e /.venv/ -e /.local/ -e /.cache/ -e /.ccache/ -e /.config/ -e /.vscode/ -e /.thunderbird/ '
     alias extree=' grep -Fv -e /.wine/ -e /linuxptp/code/ -e /labjack/modbus/ -e /LTspiceXVII/lib/ -e /LTspiceXVII/examples/ -e /zephyr/build/ -e /zephyrproject/modules/ -e /zephyrproject/zephyr/ -e /zephyrproject/tools/ -e /zephyrproject/bootloader/ '
 
@@ -90,11 +103,6 @@ def gnome_shell_f():
     #!/bin/bash
     # custom functions for use in gnome shell (and command-line)
 
-    function help {
-        echo available functions:
-        declare -F | cut -d\  -f3-
-    }
-
     function worldtime {
         echo -n 🌐; for tz in America/Los_Angeles America/Chicago Europe/Madrid Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
     }
@@ -109,6 +117,26 @@ def gnome_shell_f():
 
     function away {
         echo \#\# xdg-scr_lock $HOSTNAME $( date --rfc-3339=seconds ) stepped_away | tee -a /tmp/away && xdg-screensaver lock
+    }
+
+    function list_away {
+        cat /tmp/away | sort -k4,5 | uniq | grep -A1 stepped_away
+    }
+
+    function last_away {
+        for r in $( cat /var/log/auth.log | grep unlock | tr '\t ' '\036\037' );
+            do echo \#\# gdm-password $( echo $r | tr '\036\037' '\t ' | cut -d\  -f4 )\ $( date --date="$( echo $r | tr '\036\037' '\t ' | cut -d\  -f1-3 )" --rfc-3339=sec ) screen_unlocked >> /tmp/away;
+        done
+        start_ts=$( cat /tmp/away | sort -k4,5 | uniq | grep stepped_away | grep $( date +%Y-%m-%d ) | cut -d# -f3 | cut -d\  -f4-5 | tail -n1 );
+        start_epoch=$( date --date="$start_ts" +"%s" );
+        start_tag=$( date --date="$start_ts" +"%H%M" );
+        finish_ts=$( cat /tmp/away | sort -k4,5 | uniq | grep screen_unlocked | grep $( date +%Y-%m-%d ) | cut -d# -f3 | cut -d\  -f4-5 | tail -n1 );
+        finish_epoch=$( date --date="$finish_ts" +"%s" );
+        finish_tag=$( date --date="$finish_ts" +"%H%M" );
+        length_hours=$( echo "scale=2; ($finish_epoch-$start_epoch)/3600" | bc );
+        echo away \ \  $start_ts \ \  $finish_ts ;
+        echo away \ \  $start_tag-$finish_tag;
+        echo $length_hours
     }
 
     function ppp {
