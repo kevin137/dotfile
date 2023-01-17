@@ -161,3 +161,6 @@ unset __conda_setup
 
 export PATH=~/.local/bin:"$PATH"
 export PATH=~/.local/opt/jlink/JLink_Linux_V698b_x86_64:"$PATH"
+
+
+
