@@ -1,4 +1,4 @@
-import argparse, os, subprocess
+import argparse, os, sys, subprocess, csv
 from time import strftime, gmtime
 parser = argparse.ArgumentParser()
 parser.add_argument('cmdline_args', nargs='*', help='arguments to pass')
@@ -34,7 +34,18 @@ def determine_type(file):
     #type = subprocess.check_output(['file', '-b', '-i', file])      # Darwin
     #        .rstrip().split()                                       # Darwin
     return type
- 
+
+def convert_csv_to_tsv(args):
+    input = open(args[0], encoding='utf-8', newline='') if args else sys.stdin
+    csv_lines = csv.reader(input, dialect='excel')
+    row = next(csv_lines)  # if encoding is utf-8-sig, eliminate first CP
+    row[0] = row[0] if ord((row[0])[0]) != 0xFEFF else (row[0])[1:]
+    print('\t'.join(row))
+    for row in csv_lines:
+        print('\t'.join(row)) 
+    input.close()
+    return    
+
 try:
     func_name = str((args.cmdline_args)[0])
     func_args = (args.cmdline_args)[1:]
@@ -62,6 +73,7 @@ def bash_alias():
     alias ol='cat $HOME/.alias $HOME/.bash_work $HOME/.local/bin/gnome_shell_f | grep -i -A1 $@ '
 
     # creating file tables, filtering, pretty-printing
+    alias csv2tsv='python3 $HOME/.alias convert_csv_to_tsv $@'
     alias ft='python3 $HOME/.alias dump_file_table $@'
     alias ctab="column --table --separator $'\t' --output-separator $'\t'"
     alias exdot=' grep -Fv -e /snap/ -e /.git/ -e /.venv/ -e /.local/ -e /.cache/ -e /.ccache/ -e /.config/ -e /.vscode/ -e /.thunderbird/ '
