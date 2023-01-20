@@ -30,7 +30,7 @@ def compute_md5(file):
 
 def determine_type(file):
     type = subprocess.run(['file', '-b', '-i', file],               # Linux
-            capture_output=True).stdout.split()[0].decode('utf-8')  # Darwin
+            capture_output=True).stdout.split()[0].decode('utf-8')  # Linux
     #type = subprocess.check_output(['file', '-b', '-i', file])      # Darwin
     #        .rstrip().split()                                       # Darwin
     return type
@@ -38,7 +38,7 @@ def determine_type(file):
 def convert_csv_to_tsv(args):
     input = open(args[0], encoding='utf-8', newline='') if args else sys.stdin
     csv_lines = csv.reader(input, dialect='excel')
-    row = next(csv_lines)  # if encoding is utf-8-sig, eliminate first CP
+    row = next(csv_lines)  # if encoding is utf-8-sig, eliminate first symbol
     row[0] = row[0] if ord((row[0])[0]) != 0xFEFF else (row[0])[1:]
     print('\t'.join(row))
     for row in csv_lines:
