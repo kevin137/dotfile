@@ -99,8 +99,17 @@ def bash_alias():
     # YouTube
     alias pyt='firefox --private-window https://www.youtube.com/ 2> /dev/null &' 
 
+    # Focus
+    alias pomo='firefox --private-window https://pomofocus.io 2> /dev/null &' 
+
+
     # GitHub
     alias pgh='firefox --private-window https://github.com/login 2> /dev/null &' 
+
+    # KISA 
+    alias kmail='firefox 'https://outlook.office.com/mail/inbox' 2> /dev/null &' 
+    alias kgela='firefox 'https://egela.ehu.eus/?lang=es' 2> /dev/null &' 
+    alias kfile='xdg-open /home/kcook/proj/waah/kisa'
 
     # get latest version of this aliases file
     alias get_latest_alias='  wget --output-document=/tmp/latest_alias https://raw.githubusercontent.com/kevin137/dotfile/master/.alias && mv $HOME/.alias /tmp/alias.$( date +%Y-%m-%d-%H-%M-%S ) && mv /tmp/latest_alias $HOME/.alias '
@@ -116,7 +125,7 @@ def gnome_shell_f():
     # custom functions for use in gnome shell (and command-line)
 
     function worldtime {
-        echo -n 🌐; for tz in America/Los_Angeles America/Chicago Europe/Madrid Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
+        echo -n 🌐; for tz in America/Chicago Europe/Madrid Asia/Kolkata Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
     }
 
     function titlebar_now {
