@@ -1,5 +1,9 @@
-import argparse, os, sys, subprocess, csv
+import argparse, os, sys, subprocess, csv, datetime, re
 from time import strftime, gmtime
+from collections import Counter
+ANNIVERSARY_KEYWORDS = ['birthday', 'anniversary']
+DEFAULT_INPUT_FILE = '/home/kcook/Downloads/Memorable_dates.html'
+
 parser = argparse.ArgumentParser()
 parser.add_argument('cmdline_args', nargs='*', help='arguments to pass')
 args = parser.parse_args()
@@ -46,6 +50,113 @@ def convert_csv_to_tsv(args):
     input.close()
     return    
 
+def load_events_from_files(file_paths):
+    if not file_paths:
+        raise ValueError('No files provided')
+    unique_events_dict = {}
+    event_re = re.compile( r'''
+        (?:^|\s{1,})             # detect start of line or whitespace
+        (?P<year>[\d\?]{4,})-(?P<month>\d{2})-(?P<day>\d{2})             
+        \s{2,}                   # two or more spaces are a separator 
+        (?P<full_name>.+?) 
+        \s{2,}                   # two or more spaces are a separator
+        (?P<event_type>.+?) 
+        (?:\s{2,}(?P<note>.+))?  # optional note, preceded by 2+ spaces
+        $                        # end of line
+        ''', re.VERBOSE )
+    given_name_re = re.compile(r'\*\*([^\*]+)\*\*')
+    anniversary_re = re.compile('|'.join(ANNIVERSARY_KEYWORDS),re.IGNORECASE) 
+    for file_path in file_paths:
+        print(f'Processing file: {file_path}') 
+        try:
+            with open(file_path, 'r') as file:
+                lines = file.readlines()
+            for line in lines:
+                m = event_re.search(line)
+                if m:
+                    year = m.group('year').strip() 
+                    month = int(m.group('month').strip()) 
+                    day = int(m.group('day').strip()) 
+                    full_name = m.group('full_name').strip() 
+                    event_type = m.group('event_type').strip() 
+                    note = m.group('note').strip() if m.group('note') else ''
+                    calc_anni = bool(anniversary_re.search(event_type))
+                    if '?' in year:
+                        year = datetime.date.today().year
+                        calc_anni = False
+                    else:
+                        year = int(year)
+                    date = datetime.date(year, month, day)
+                    given_name_match = given_name_re.search(full_name)
+                    if given_name_match:
+                        given_name = given_name_match.group(1).strip()
+                    else:
+                        given_name = full_name
+                    event_key = (date, full_name, event_type, note)
+                    if event_key not in unique_events_dict:
+                        unique_events_dict[event_key] = { 
+                            'date': date,
+                            'name': full_name,
+                            'given_name': given_name,
+                            'type': event_type,
+                            'note': note,
+                            'calc_anni': calc_anni
+                        }
+        except FileNotFoundError:
+            print(f'File {file_path} not found. Skipping...')
+    return unique_events_dict
+
+def process_upcoming_events(events, be_impolite=True):
+    today = datetime.date.today()
+    upcoming_list = []
+    counts = Counter(e['given_name'] for e in events.values())
+    for e in events.values():
+        date = e['date'].replace(year=today.year)
+        if date < today: date = date.replace(year=today.year+1)
+        days_until = (date - today).days
+        years_since = date.year - e['date'].year if e['calc_anni'] else None
+        name = e['name'] if counts[e['given_name']] > 1 else e['given_name']
+        description = f"{name}, {e['type']}"
+        if years_since is not None and (be_impolite or years_since < 18):
+            description += f' ({years_since})'
+        upcoming_list.append({
+            'display_date': date.strftime('%Y-%m-%d'),
+            'description': description,
+            'days_until': days_until,
+            'note': e['note']
+        })
+    upcoming_list.sort(key=lambda x: x['days_until'])
+    return upcoming_list
+
+def upcoming(args):
+    args_files = []
+    args_n = 10
+    #args.files.insert(0, DEFAULT_INPUT_FILE)
+    args_files.insert(0, DEFAULT_INPUT_FILE)
+    try:
+        #all_events = load_events_from_files(args.files)
+        all_events = load_events_from_files(args_files)
+    except ValueError as error:
+        print(error)
+        return
+    upcoming = process_upcoming_events(all_events, True)
+    print('\nUpcoming events:')
+    events_printed = 0
+    for i, e in enumerate(upcoming):
+        days, date = e['days_until'], e['display_date'] 
+        desc = e['description'].replace('**', '')
+        if i > 0 and days >= 8 and upcoming[i-1]['days_until'] <= 7: print('')
+        if days == 0:
+            until = '(Today)      '  
+        elif days == 1:
+            until = '(Tomorrow)   '
+        else:
+            until = f"(in {str(days)} days){' '*(3 - len(str(days)))}"
+        print(f"{until}  {date}  {desc}  {e['note']}")    
+        #if events_printed >= args.num_events: break
+        if events_printed >= args_n: break
+        if days > 7: events_printed += 1
+
 try:
     func_name = str((args.cmdline_args)[0])
     func_args = (args.cmdline_args)[1:]
@@ -58,6 +169,8 @@ def bash_alias():
     #END_PYTHON
     #BEGIN_BASH_ALIAS
     history_dir=$HOME/Documents/History
+    #export INSTANCE_TYPE=WSL2
+    export INSTANCE_TYPE=Linux
 
     # bash history management
     alias h='history; echo ----------; history | head -n1; history | grep "$( cat $history_dir/$( ls -1rt $history_dir | tail -n1 ) | grep \#\#\ history_marker | tail -n1 )"; history | tail -n1'
@@ -67,20 +180,29 @@ def bash_alias():
 
     # basic convenience functions
     alias now='date +[%V]\ %A\,\ %Y-%m-%d\ %H:%M:%S'
-    alias dfh='df -h -x"squashfs" -x"tmpfs" -x"udev"'
-    alias t='gnome-terminal --window'
+    alias dfh='df -h -x"squashfs" -x"snapfuse" -x"tmpfs" -x"udev"'
+    alias t='go_terminal'
     #alias op='xdg-open $@'  # this is less useful now, all platforms have "open"
     alias ol='cat $HOME/.alias $HOME/.bash_work $HOME/.local/bin/gnome_shell_f | grep -i -A1 $@ '
 
     # creating file tables, filtering, pretty-printing
     alias csv2tsv='python3 $HOME/.alias convert_csv_to_tsv $@'
     alias ft='python3 $HOME/.alias dump_file_table $@'
+    alias upcoming='python3 $HOME/.alias upcoming $@'
     alias ctab="column --table --separator $'\t' --output-separator $'\t'"
     alias exdot=' grep -Fv -e /snap/ -e /.git/ -e /.venv/ -e /.local/ -e /.cache/ -e /.ccache/ -e /.config/ -e /.vscode/ -e /.thunderbird/ '
     alias extree=' grep -Fv -e /.wine/ -e /linuxptp/code/ -e /labjack/modbus/ -e /LTspiceXVII/lib/ -e /LTspiceXVII/examples/ -e /zephyr/build/ -e /zephyrproject/modules/ -e /zephyrproject/zephyr/ -e /zephyrproject/tools/ -e /zephyrproject/bootloader/ '
 
+    # hardware stuff
+    alias bat='upower --dump | grep -Pzo "(?s)Device.*lithium-ion" | strings | grep -e Device -e online -e state -e voltage -e percentage -e time | strings; echo Profile\: $( powerprofilesctl get )'
+    alias laptop_headphones='pactl set-sink-port $( pactl list sinks | grep -e Sink -e Description | grep -B1 eadphones | grep Sink | cut -d"#" -f2 ) "[Out] Headphones"'
+    alias laptop_speaker='pactl set-sink-port $( pactl list sinks | grep -e Sink -e Description | grep -B1 eadphones | grep Sink | cut -d"#" -f2 ) "[Out] Speaker"'
+    alias volu='pactl -- set-sink-volume $( pacmd list-sinks | grep \*\ index\: | cut -d: -f2 | tr -d " " ) +10%'
+    alias vold='pactl -- set-sink-volume $( pacmd list-sinks | grep \*\ index\: | cut -d: -f2 | tr -d " " ) -10%'
+    alias volm='pactl -- set-sink-volume $( pacmd list-sinks | grep \*\ index\: | cut -d: -f2 | tr -d " " ) 0%'
+
     # Notepad++ (wine)
-    alias npp='echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found '
+    alias npp='go_notepadplusplus $@'
     # LTspice (wine)
     alias lts='echo; [ -f $HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe ] && pushd $HOME/share && ( wine "$HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe" & ) && popd && echo LTspice started || echo LTspice not found '
 
@@ -88,27 +210,27 @@ def bash_alias():
     alias tg='telegram-desktop 2> /dev/null &'
 
     # Telegram web
-    alias ptg='firefox --private-window https://web.telegram.org/#/login 2> /dev/null &'
+    #alias ptg='firefox --private-window https://web.telegram.org/#/login 2> /dev/null &'
+    alias ptg='go_firefox --private-window https://web.telegram.org/#/login'
 
     # WhatsApp web
-    alias pwa='firefox --private-window https://web.whatsapp.com/ 2> /dev/null &'
+    alias pwa='go_firefox --private-window https://web.whatsapp.com/'
 
     # Gmail
-    alias pgm='firefox --private-window https://www.gmail.com/ 2> /dev/null &' 
+    alias pgm='go_firefox --private-window https://www.gmail.com/' 
 
     # YouTube
-    alias pyt='firefox --private-window https://www.youtube.com/ 2> /dev/null &' 
+    alias pyt='go_firefox --private-window https://www.youtube.com/' 
 
     # Focus
-    alias pomo='firefox --private-window https://pomofocus.io 2> /dev/null &' 
-
+    alias pomo='go_firefox --private-window https://pomofocus.io' 
 
     # GitHub
-    alias pgh='firefox --private-window https://github.com/login 2> /dev/null &' 
+    alias pgh='go_firefox --private-window https://github.com/login' 
 
     # KISA 
-    alias kmail='firefox 'https://outlook.office.com/mail/inbox' 2> /dev/null &' 
-    alias kgela='firefox 'https://egela.ehu.eus/?lang=es' 2> /dev/null &' 
+    alias kmail='go_firefox https://outlook.office.com/mail/inbox'
+    alias kgela='go_firefox https://egela.ehu.eus/?lang=es' 
     alias kfile='xdg-open /home/kcook/proj/waah/kisa'
 
     # get latest version of this aliases file
@@ -122,10 +244,10 @@ def gnome_shell_f():
     r'''
     #BEGIN_GNOME_SHELL_F
     #!/bin/bash
-    # custom functions for use in gnome shell (and command-line)
+    # custom functions for use in gnome shell (and bash command-line)
 
     function worldtime {
-        echo -n 🌐; for tz in America/Chicago Europe/Madrid Asia/Kolkata Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
+        echo -n 🌐; for tz in America/Chicago UTC Europe/Madrid Asia/Kolkata Asia/Shanghai; do echo -n \  \|\ \ $( echo $tz | cut -d/ -f2) $( TZ=$tz date +%H:%M ); done; echo
     }
 
     function titlebar_now {
@@ -162,11 +284,78 @@ def gnome_shell_f():
 
     function ppp {
         # Telegram, WhatsApp, Gmail, and Alpha in one command, for use first thing in the morning
+        ## ( ( telegram-desktop 2> /dev/null & ) & 
+        go_chrome --incognito 'https://web.telegram.org/#/login' 
+        go_chrome --incognito 'https://web.whatsapp.com/'
+        go_chrome --incognito 'https://www.gmail.com/'
+        go_chrome --incognito 'https://chat.openai.com/'
+        go_chrome --incognito 'https://www.wolframalpha.com/'
+        go_chrome --incognito 'https://www.deepl.com/en/translator'
+    }
+
+    function old_ppp {
+        # Telegram, WhatsApp, Gmail, and Alpha in one command, for use first thing in the morning
         ( ( telegram-desktop 2> /dev/null & ) & 
         google-chrome --incognito 'https://web.telegram.org/#/login' 2> /dev/null & ) & 
-        ( sleep 7 && google-chrome --incognito 'https://web.whatsapp.com/' 2> /dev/null & ) & 
+        ( sleep  7 && google-chrome --incognito 'https://web.whatsapp.com/' 2> /dev/null & ) & 
         ( sleep 14 && google-chrome --incognito 'https://www.gmail.com/' 2> /dev/null & ) & 
-        ( sleep 21 && google-chrome --incognito 'https://www.wolframalpha.com/' 2> /dev/null & ) & 
+        ( sleep 21 && google-chrome --incognito 'https://chat.openai.com/' 2> /dev/null & ) & 
+        ( sleep 28 && google-chrome --incognito 'https://www.wolframalpha.com/' 2> /dev/null & ) & 
+    }
+
+    function go_terminal {
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                wt.exe
+                ;;
+            Linux)
+				gnome-terminal --window
+                ;;
+        esac
+    }
+
+    function go_open {
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                pushd /mnt/c > /dev/null 2>&1 && cmd.exe /C start $@ && popd > /dev/null 2>&1
+                ;;
+            Linux)
+				open $@ 2> /dev/null &
+                ;;
+        esac
+    }
+
+    function go_chrome {
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                /mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe "$@" 2>&1 & 
+                ;;
+            Linux)
+				google-chrome $@ 2>&1 & 
+                ;;
+        esac
+    }
+
+    function go_firefox {
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                pushd /mnt/c > /dev/null 2>&1 && cmd.exe /C start firefox.exe $@ && popd > /dev/null 2>&1
+                ;;
+            Linux)
+				firefox $@ 2> /dev/null &
+                ;;
+        esac
+    }
+
+    function go_notepadplusplus {
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                /mnt/c/Local/Npp/notepad++.exe "$@" 2>&1 &
+                ;;
+            Linux)
+			    echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found
+                ;;
+        esac
     }
 
     function install_npp {
