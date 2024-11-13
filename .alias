@@ -169,8 +169,17 @@ def bash_alias():
     #END_PYTHON
     #BEGIN_BASH_ALIAS
     history_dir=$HOME/Documents/History
-    #export INSTANCE_TYPE=WSL2
-    export INSTANCE_TYPE=Linux
+    
+    UNAME=$(uname -a)
+    if echo "$UNAME" | grep -iq "Darwin"; then
+        export INSTANCE_TYPE=Darwin    
+    elif echo "$UNAME" | grep -iq "Microsoft"; then
+        export INSTANCE_TYPE=WSL2    
+    elif echo "$UNAME" | grep -iq "Linux"; then
+        export INSTANCE_TYPE=Linux
+    else
+        export INSTANCE_TYPE=WSL2
+    fi
 
     # bash history management
     alias h='history; echo ----------; history | head -n1; history | grep "$( cat $history_dir/$( ls -1rt $history_dir | tail -n1 ) | grep \#\#\ history_marker | tail -n1 )"; history | tail -n1'
@@ -201,8 +210,6 @@ def bash_alias():
     alias vold='pactl -- set-sink-volume $( pacmd list-sinks | grep \*\ index\: | cut -d: -f2 | tr -d " " ) -10%'
     alias volm='pactl -- set-sink-volume $( pacmd list-sinks | grep \*\ index\: | cut -d: -f2 | tr -d " " ) 0%'
 
-    # Notepad++ (wine)
-    alias npp='go_notepadplusplus $@'
     # LTspice (wine)
     alias lts='echo; [ -f $HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe ] && pushd $HOME/share && ( wine "$HOME/.wine/drive_c/Local/LTspice/XVIIx64.exe" & ) && popd && echo LTspice started || echo LTspice not found '
 
@@ -258,24 +265,43 @@ def gnome_shell_f():
         for ip in $( ip -4 addr | grep -v 127.0.0.1 | grep inet | tr -s ' ' '@' | cut -d@ -f3 ); do echo -n $ip \ \|\  ; done; echo -n \  ; hostname
     }
 
+    function away {
+        echo \#\# xdg-scr_lock $HOSTNAME $( date --rfc-3339=seconds ) stepped_away | tee -a /tmp/away
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                (cd /mnt/c && cmd.exe /C "rundll32.exe user32.dll,LockWorkStation")
+                ;;
+            Linux)
+                xdg-screensaver lock
+                ;;
+        esac
+    }
+
     function list_away {
         cat /tmp/away | sort -k4,5 | uniq | grep -A1 stepped_away
     }
 
-    function last_away {
-        for r in $( cat /var/log/auth.log | grep unlock | tr '\t ' '\036\037' );
-            do echo \#\# gdm-password $( echo $r | tr '\036\037' '\t ' | cut -d\  -f4 )\ $( date --date="$( echo $r | tr '\036\037' '\t ' | cut -d\  -f1-3 )" --rfc-3339=sec ) screen_unlocked >> /tmp/away;
-        done
-        start_ts=$( cat /tmp/away | sort -k4,5 | uniq | grep stepped_away | grep $( date +%Y-%m-%d ) | cut -d# -f3 | cut -d\  -f4-5 | tail -n1 );
-        start_epoch=$( date --date="$start_ts" +"%s" );
-        start_tag=$( date --date="$start_ts" +"%H%M" );
-        finish_ts=$( cat /tmp/away | sort -k4,5 | uniq | grep screen_unlocked | grep $( date +%Y-%m-%d ) | cut -d# -f3 | cut -d\  -f4-5 | tail -n1 );
-        finish_epoch=$( date --date="$finish_ts" +"%s" );
-        finish_tag=$( date --date="$finish_ts" +"%H%M" );
-        length_hours=$( echo "scale=2; ($finish_epoch-$start_epoch)/3600" | bc );
-        echo away \ \  $start_ts \ \  $finish_ts ;
-        echo away \ \  $start_tag-$finish_tag;
-        echo $length_hours
+    function gte {
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                /mnt/c/Windows/notepad.exe "$@" 2>&1 &
+                ;;
+            Linux)
+                gnome-text-editor "$@"
+                ;;
+        esac
+    }
+
+    # Notepad++ (Native/WINE)
+    function npp {
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                /mnt/c/Local/Npp/notepad++.exe "$@" 2>&1
+                ;;
+            Linux)
+                echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found
+                ;;
+        esac
     }
 
     function ppp {
@@ -339,29 +365,6 @@ def gnome_shell_f():
                 ;;
             Linux)
                 firefox $@ 2> /dev/null &
-                ;;
-        esac
-    }
-
-    function away {
-        echo \#\# xdg-scr_lock $HOSTNAME $( date --rfc-3339=seconds ) stepped_away | tee -a /tmp/away
-        case "$INSTANCE_TYPE" in
-            WSL2)
-                cmd.exe /C "rundll32.exe user32.dll,LockWorkStation"
-                ;;
-            Linux)
-                xdg-screensaver lock
-                ;;
-        esac
-    }
-
-    function go_notepadplusplus {
-        case "$INSTANCE_TYPE" in
-            WSL2)
-                /mnt/c/Local/Npp/notepad++.exe "$@" 2>&1 &
-                ;;
-            Linux)
-                echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found
                 ;;
         esac
     }
