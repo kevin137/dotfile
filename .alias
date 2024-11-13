@@ -258,10 +258,6 @@ def gnome_shell_f():
         for ip in $( ip -4 addr | grep -v 127.0.0.1 | grep inet | tr -s ' ' '@' | cut -d@ -f3 ); do echo -n $ip \ \|\  ; done; echo -n \  ; hostname
     }
 
-    function away {
-        echo \#\# xdg-scr_lock $HOSTNAME $( date --rfc-3339=seconds ) stepped_away | tee -a /tmp/away && xdg-screensaver lock
-    }
-
     function list_away {
         cat /tmp/away | sort -k4,5 | uniq | grep -A1 stepped_away
     }
@@ -309,7 +305,7 @@ def gnome_shell_f():
                 wt.exe
                 ;;
             Linux)
-				gnome-terminal --window
+                gnome-terminal --window
                 ;;
         esac
     }
@@ -320,7 +316,7 @@ def gnome_shell_f():
                 pushd /mnt/c > /dev/null 2>&1 && cmd.exe /C start $@ && popd > /dev/null 2>&1
                 ;;
             Linux)
-				open $@ 2> /dev/null &
+                open $@ 2> /dev/null &
                 ;;
         esac
     }
@@ -331,7 +327,7 @@ def gnome_shell_f():
                 /mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe "$@" 2>&1 & 
                 ;;
             Linux)
-				google-chrome $@ 2>&1 & 
+                google-chrome $@ 2>&1 & 
                 ;;
         esac
     }
@@ -342,7 +338,19 @@ def gnome_shell_f():
                 pushd /mnt/c > /dev/null 2>&1 && cmd.exe /C start firefox.exe $@ && popd > /dev/null 2>&1
                 ;;
             Linux)
-				firefox $@ 2> /dev/null &
+                firefox $@ 2> /dev/null &
+                ;;
+        esac
+    }
+
+    function away {
+        echo \#\# xdg-scr_lock $HOSTNAME $( date --rfc-3339=seconds ) stepped_away | tee -a /tmp/away
+        case "$INSTANCE_TYPE" in
+            WSL2)
+                cmd.exe /C "rundll32.exe user32.dll,LockWorkStation"
+                ;;
+            Linux)
+                xdg-screensaver lock
                 ;;
         esac
     }
@@ -353,7 +361,7 @@ def gnome_shell_f():
                 /mnt/c/Local/Npp/notepad++.exe "$@" 2>&1 &
                 ;;
             Linux)
-			    echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found
+                echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found
                 ;;
         esac
     }
