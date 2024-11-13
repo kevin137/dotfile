@@ -243,6 +243,9 @@ def bash_alias():
     # get latest version of this aliases file
     alias get_latest_alias='  wget --output-document=/tmp/latest_alias https://raw.githubusercontent.com/kevin137/dotfile/master/.alias && mv $HOME/.alias /tmp/alias.$( date +%Y-%m-%d-%H-%M-%S ) && mv /tmp/latest_alias $HOME/.alias '
 
+    # watch connection to router and 8.8.8.8
+    alias watchnet=" while true; do echo -n ''; router=$(ip neigh | cut -d\  -f1 | grep . || echo none); router_ping=$( ping -c1 -W2 $router 2>&1 ); ringtone=8.8.8.8; ringtone_ping=$( ping -c1 -W2 $ringtone 2>&1 ); echo -e $( date --rfc-3339=sec | cut -d\  -f2 ) $router $( echo $router_ping | grep -i -e error -e failure -e unreachable >/dev/null && echo UNREACHABLE || echo UP) $( echo $router_ping | grep rtt > /dev/null && echo $router_ping | cut -d/ -f5) $ringtone $( echo $ringtone_ping | grep -e error -e failure -e unreachable >/dev/null && echo UNREACHABLE || echo UP) $( echo $ringtone_ping | grep rtt > /dev/null && echo $ringtone_ping | cut -d/ -f5 ); sleep 3; done "
+
     return
     #END_BASH_ALIAS
     '''
@@ -265,6 +268,7 @@ def gnome_shell_f():
         for ip in $( ip -4 addr | grep -v 127.0.0.1 | grep inet | tr -s ' ' '@' | cut -d@ -f3 ); do echo -n $ip \ \|\  ; done; echo -n \  ; hostname
     }
 
+    # Step away, lock and blank screen, record time
     function away {
         echo \#\# xdg-scr_lock $HOSTNAME $( date --rfc-3339=seconds ) stepped_away | tee -a /tmp/away
         case "$INSTANCE_TYPE" in
@@ -277,10 +281,12 @@ def gnome_shell_f():
         esac
     }
 
+    # Show record of away instances
     function list_away {
         cat /tmp/away | sort -k4,5 | uniq | grep -A1 stepped_away
     }
 
+    # Graphical text editor
     function gte {
         case "$INSTANCE_TYPE" in
             WSL2)
