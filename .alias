@@ -308,13 +308,20 @@ def gnome_shell_f():
     }
 
     # watch connection to router and 8.8.8.8
+    #   to launch in a new window:
+    #     gnome-terminal -- .local/bin/gnome_shell_f watchnet
     function watchnet {
         while true; 
         do echo -n ''; 
         router=$(ip neigh | cut -d\  -f1 | grep . || echo none); 
         router_ping=$( ping -c1 -W2 $router 2>&1 ); 
         ringtone=8.8.8.8; ringtone_ping=$( ping -c1 -W2 $ringtone 2>&1 ); 
-        echo -e $( date --rfc-3339=sec | cut -d\  -f2 ) $router $( echo $router_ping | grep -i -e error -e failure -e unreachable >/dev/null && echo UNREACHABLE || echo UP) $( echo $router_ping | grep rtt > /dev/null && echo $router_ping | cut -d/ -f5) $ringtone $( echo $ringtone_ping | grep -e error -e failure -e unreachable >/dev/null && echo UNREACHABLE || echo UP) $( echo $ringtone_ping | grep rtt > /dev/null && echo $ringtone_ping | cut -d/ -f5 ); 
+        echo -e $( date --rfc-3339=sec | cut -d\  -f2 ) $router \
+            $( echo $router_ping | grep -i -e error -e failure -e unreachable >/dev/null && \
+            echo UNREACHABLE || echo UP) $( echo $router_ping | grep rtt > /dev/null && \
+            echo $router_ping | cut -d/ -f5) $ringtone $( echo $ringtone_ping | \
+            grep -e error -e failure -e unreachable >/dev/null && echo UNREACHABLE || echo UP) \
+            $( echo $ringtone_ping | grep rtt > /dev/null && echo $ringtone_ping | cut -d/ -f5 ); 
         sleep 3; 
         done;
     }
