@@ -299,7 +299,7 @@ def gnome_shell_f():
     function npp {
         case "$INSTANCE_TYPE" in
             WSL2)
-                /mnt/c/Local/Npp/notepad++.exe "$@" 2>&1
+                /mnt/c/Local/Npp/notepad++.exe "$@" 2>&1 &
                 ;;
             Linux)
                 echo; [ -f $HOME/.wine/drive_c/Local/Npp/notepad++.exe ] && pushd $HOME/share && ( wine "C:\Local\Npp\notepad++.exe" & ) && popd && echo Notepad++ started || echo Notepad++ not found
