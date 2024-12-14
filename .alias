@@ -480,5 +480,5 @@ def gnome_shell_f():
     # XTerm*color13: #ad7fa8
     # XTerm*color14: #34e2e2
     # XTerm*color15: #eeeeec
-    #
+    # ! end XTerm
     '''
