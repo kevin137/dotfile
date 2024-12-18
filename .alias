@@ -5,7 +5,6 @@ ANNIVERSARY_KEYWORDS = ['birthday', 'anniversary']
 DEFAULT_INPUT_FILE = '/home/kcook/Downloads/Memorable_dates.html'
 DEFAULT_INPUT_FILE = os.path.join(os.environ['HOME'], 
                                     'Downloads', 'Memorable_dates.html')
-
 parser = argparse.ArgumentParser()
 parser.add_argument('cmdline_args', nargs='*', help='arguments to pass')
 args = parser.parse_args()
@@ -456,29 +455,4 @@ def gnome_shell_f():
     #     Breaking out of stuck ssh session : <Enter><Enter><AltGr+'4'>.
     #   Relaxing green background color inspired by Ik corporate desktop:
     #     #003f00
-    # 
-    # ! Xresources describing colors (inspired by Irix winterm)
-    # ! Set foreground and background colors for XTerm
-    # XTerm*foreground: #d6d6d6
-    # XTerm*background: #00003f
-    # ! Set cursor color
-    # XTerm*cursorColor: #00ff00
-    # ! Define ANSI color palette, copied from Tango
-    # XTerm*color0:  #2e3436
-    # XTerm*color1:  #cc0000
-    # XTerm*color2:  #4e9a06
-    # XTerm*color3:  #c4a000
-    # XTerm*color4:  #3465a4
-    # XTerm*color5:  #75507b
-    # XTerm*color6:  #06989a
-    # XTerm*color7:  #d3d7cf
-    # XTerm*color8:  #555753
-    # XTerm*color9:  #ef2929
-    # XTerm*color10: #8ae234
-    # XTerm*color11: #fce94f
-    # XTerm*color12: #729fcf
-    # XTerm*color13: #ad7fa8
-    # XTerm*color14: #34e2e2
-    # XTerm*color15: #eeeeec
-    # ! end XTerm
     '''
