@@ -1,0 +1,16 @@
+echo $INITIAL_VNC_PASSWORD 
+sudo apt update; sudo apt upgrade;
+sudo apt install iputils-ping vim mousepad
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:mozillateam/ppa
+sudo apt update
+sudo apt install firefox-esr
+firefox-esr &
+echo Need to turn off sandboxing 
+echo   in Firefox open about:config
+echo   set sandbox.cubeband false
+echo   set security.sandbox.content.level 0
+echo   restart Firefox
+wget https://raw.githubusercontent.com/kevin137/dotfile/master/.Xresources
+vi .Xresources
+xrdb ~/.Xresources
