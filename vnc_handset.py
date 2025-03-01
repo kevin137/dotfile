@@ -6,7 +6,7 @@ import tempfile
 VNC_PASSWORD='XXXXXXXX'
 VNC_PORT=5951
 RNDIS_CONN_NAME='XXXXXXXX'
-RNDIS_METRIC=500
+RNDIS_METRIC=700
 
 def find_rndis_device():
     """Find and return the device name for an RNDIS device using nmcli."""
