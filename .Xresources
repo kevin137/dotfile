@@ -1,4 +1,5 @@
-! Larger default font for XTerm for usability on phone screen
+! Nice soothing background:  #003f00
+! XTerm font: larger default for usability on phone screen
 XTerm*faceName:    Monospace
 XTerm*faceSize:    16
 ! XTerm colors (inspired by Irix winterm)
