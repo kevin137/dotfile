@@ -1,4 +1,5 @@
-echo $INITIAL_VNC_PASSWORD 
+echo $INITIAL_VNC_PASSWORD
+wget https://raw.githubusercontent.com/kevin137/dotfile/master/userland_setup.txt
 sudo apt update; sudo apt upgrade;
 sudo apt install iputils-ping vim mousepad
 sudo apt install software-properties-common
