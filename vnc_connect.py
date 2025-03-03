@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import time
 import platform
 import subprocess
@@ -30,7 +31,8 @@ def get_vnc_rndis_conn_id_password():
                 print(f'found VNC connection {rndis_conn_id} with password')
                 return rndis_conn_id, vnc_password
 
-    print('No VNC connection found in environment variables.')
+    print('no VNC connection parameters found in environment variables,')
+    print(f'  set environment variable matching {RNDIS_CONN_ID_REGEXP}')
     return None, None
 
 def find_rndis_linux(max_tries, delay):
@@ -292,6 +294,8 @@ def launch_vncviewer(ip_address, vnc_port, vnc_password):
 def main():
     
     rndis_conn_id, vnc_password = get_vnc_rndis_conn_id_password()
+    if not all([rndis_conn_id, vnc_password]):
+        sys.exit(1) 
     conn_id, ipv4_here, ipv4_vnc = find_rndis_device()
     if all([conn_id, ipv4_here, ipv4_vnc]) and conn_id != rndis_conn_id:
         updated_id = change_connection_id(conn_id, rndis_conn_id)
@@ -301,7 +305,7 @@ def main():
         route_metric = change_route_metric(conn_id, RNDIS_METRIC)
         print(f'  new metric: {route_metric}')
         launch_vncviewer(ipv4_vnc, VNC_PORT, vnc_password)
-    
+    sys.exit()
 
 if __name__ == '__main__':
     main()
