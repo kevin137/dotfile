@@ -44,7 +44,8 @@ def find_rndis_linux(max_tries, delay):
     
     for attempt in range(1, max_tries + 1):
         try:
-            result = subprocess.check_output(
+            # now antiquated
+            result = subprocess.check_output(  # now antiquated
                 [ 'nmcli', '-f',
                     'GENERAL.product,GENERAL.device,GENERAL.connection,' + 
                     'IP4.address,IP4.gateway',
@@ -105,7 +106,7 @@ def find_rndis_windows(max_tries, delay):
                 "                                              ).NextHop; " + 
                 "'{0} {1} {2}' -f $_.InterfaceAlias, $_.IPAddress, $gateway }"
             )
-            result = subprocess.check_output(
+            result = subprocess.check_output(   # now antiquated
                 ["powershell", "-Command", ps_command],
                 text=True
             )
@@ -158,15 +159,18 @@ def change_id_linux(old_id, new_id):
     """
 
     try:
-        result = subprocess.check_output( [ 'nmcli', 'connection', 
-            'delete', new_id ], text=True).strip()
+        result = subprocess.run( [ 'nmcli', 'connection', 'delete', new_id ], 
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError as e:
         print(f'Error running nmcli: {e}')
     try:
+        # now antiquated
         result = subprocess.check_output( [ 'nmcli', 'connection', 
             'modify', old_id, 'connection.id', new_id ], text=True).strip()
+        # now antiquated
         result = subprocess.check_output( [ 'nmcli', 'connection', 
             'down', new_id ], text=True).strip()
+        # now antiquated
         result = subprocess.check_output( [ 'nmcli', 'connection', 
             'up',   new_id ], text=True).strip()
         return new_id
@@ -178,7 +182,7 @@ def change_id_windows(old_id, new_id):
     """ Change the id of an existing network adapter in Windows.
         This does not work well in Windows without Administrator privileges, 
         plus the default RNDIS name in Windows is more user-friendly, so in 
-        this case we just return the old_id as the new_id-
+        this case we just return the old_id as the new_id.
     """
 
     return old_id
@@ -186,7 +190,7 @@ def change_id_windows(old_id, new_id):
 
 def change_connection_id(old_id, new_id):
     """ Wrapper function for changing connection id """
-    
+
     if is_windows():
         new_id = change_id_windows(old_id, new_id)
     else:
@@ -200,13 +204,17 @@ def change_metric_linux(conn_id, metric):
     """
 
     try:
+        # now antiquated
         result = subprocess.check_output( [ 'nmcli', 'connection', 
             'modify', conn_id, 'ipv4.route-metric', str(metric) ], 
                 text=True).strip()
+        # now antiquated
         result = subprocess.check_output( [ 'nmcli', 'connection', 
             'down',   conn_id ], text=True).strip()
+        # now antiquated
         result = subprocess.check_output( [ 'nmcli', 'connection', 
             'up',     conn_id ], text=True).strip()
+        # now antiquated
         route_metric = subprocess.check_output( [ 'nmcli', 
             '--get-values', 'ipv4.route-metric', 'connection', 'show', 
             conn_id ], text=True).strip()
@@ -221,6 +229,7 @@ def change_metric_windows(conn_id, metric):
     """
     try:
         # Set the new route metric using PowerShell
+        # now antiquated
         subprocess.check_output(
             ['powershell', '-Command',
              f'Start-Process powershell -ArgumentList "Set-NetIPInterface -InterfaceAlias \\"{conn_id}\\" -InterfaceMetric {metric}" -Verb RunAs'],
@@ -232,6 +241,7 @@ def change_metric_windows(conn_id, metric):
         # Start-Process powershell -ArgumentList "Set-NetIPInterface -InterfaceAlias RNDIS -InterfaceMetric 700" -Verb RunAs
 
         # Retrieve the updated metric to verify
+        # now antiquated
         result = subprocess.check_output(
             ['powershell', '-Command',
              f'Get-NetIPInterface -InterfaceAlias "{conn_id}" | Select-Object -ExpandProperty InterfaceMetric'],
@@ -267,7 +277,8 @@ def launch_vncviewer(ip_address, vnc_port, vnc_password):
         # Launch vncviewer with the provided IP address
         with open('/dev/null', 'w') as devnull:
             subprocess.Popen(
-                ['vncviewer', connection_string],
+                #['vncviewer', connection_string],
+                ['xtigervncviewer', connection_string],
                 stdout = devnull,
                 stderr = devnull
             )
@@ -289,8 +300,8 @@ def main():
     if ipv4_vnc:
         route_metric = change_route_metric(conn_id, RNDIS_METRIC)
         print(f'  new metric: {route_metric}')
-    #    launch_vncviewer(ipv4_vnc, VNC_PORT, vnc_password)
-    #
+        launch_vncviewer(ipv4_vnc, VNC_PORT, vnc_password)
+    
 
 if __name__ == '__main__':
     main()
