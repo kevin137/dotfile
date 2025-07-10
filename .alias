@@ -2,9 +2,9 @@ import argparse, os, sys, subprocess, csv, datetime, re
 from time import strftime, gmtime
 from collections import Counter
 ANNIVERSARY_KEYWORDS = ['birthday', 'anniversary']
-DEFAULT_INPUT_FILE = '/home/kcook/Downloads/Memorable_dates.html'
+DEFAULT_INPUT_FILE = '/home/kcook/Downloads/memorable/dates.html'
 DEFAULT_INPUT_FILE = os.path.join(os.environ['HOME'], 
-                                    'Downloads', 'Memorable_dates.html')
+                                    'Downloads', 'memorable', 'dates.html')
 parser = argparse.ArgumentParser()
 parser.add_argument('cmdline_args', nargs='*', help='arguments to pass')
 args = parser.parse_args()
